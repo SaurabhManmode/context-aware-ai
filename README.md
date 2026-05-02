@@ -1,87 +1,98 @@
-🧠 Context-Aware AI Chat Application (Spring AI + Mistral)
-🚀 Overview
 
-This project is a context-aware conversational AI backend built using:
+# 🧠 Context-Aware AI Chat Application
 
-Spring Boot 3
-Spring AI
-Mistral AI (via Spring AI integration)
-Custom in-memory session-based chat history
+### (Spring AI + Mistral)
 
-It replicates the behavior of frameworks like LangChain but in Java + Spring ecosystem, giving full control over memory and architecture.
+## 🚀 Overview
+This project is a context-aware conversational AI backend built with **Spring Boot 3** and **Spring AI**. It leverages the **Mistral AI** model to provide intelligent responses while maintaining a custom in-memory session-based chat history.
 
-🎯 Features
-✅ Context-aware conversations
-✅ Session-based memory (sessionId)
-✅ REST API for chat
-✅ Clean Spring Boot architecture
-✅ Uses Mistral model via Spring AI
-🚧 Easily extendable (Redis, RAG, streaming)
-🏗️ Architecture
-Client (Postman / UI)
-↓
-ChatController
-↓
-ChatService
-↓
-ChatClient (Spring AI)
-↓
-Mistral Model
-↑
-ChatHistoryService (In-memory)
-📁 Project Structure
+By replicating the memory patterns of frameworks like LangChain within the Java/Spring ecosystem, this project offers full control over conversation state and backend architecture.
+
+## 🎯 Features
+*   ✅ **Context-Aware Conversations**: Remembers previous interactions within the same session.
+*   ✅ **Session-Based Memory**: Uses `sessionId` to isolate chat histories.
+*   ✅ **REST API**: Simple POST endpoint for easy integration with UIs or Postman.
+*   ✅ **Mistral Integration**: Seamlessly connects to Mistral via Spring AI.
+*   ✅ **Extensible**: Built to easily support Redis for persistent memory, RAG (Retrieval-Augmented Generation), or streaming responses.
+
+## 🏗️ Architecture
+The flow of data through the application:
+
+`Client (Postman/UI)` ➔ `ChatController` ➔ `ChatService` ➔ `ChatClient (Spring AI)` ➔ `Mistral Model`
+**Note**: The `ChatService` interacts with `ChatHistoryService` to inject conversation history into every prompt.
+
+
+
+---
+
+## 📁 Project Structure
+```text
 src/main/java/com/example/context_aware_ai_demo/
 │
-├── controller/
-│   └── ChatController.java
-│
-├── service/
-│   ├── ChatService.java
-│   └── ChatHistoryService.java
-│
-├── dto/
-│   ├── ChatRequest.java
-│   └── ChatMessage.java
-│
-├── config/
-│   └── ChatClientConfig.java
-│
-└── ContextAwareAiDemoApplication.java
-⚙️ Prerequisites
-Java 17+
-Maven 3.9+
-Mistral API Key
-🔑 Configuration
-📁 application.properties
+├── config/         # Spring AI and Bean configurations
+├── controller/     # REST Endpoints
+├── dto/            # Data Transfer Objects (Request/Response)
+├── service/        # Business logic and History Management
+└── Application.java
+```
+
+## ⚙️ Prerequisites
+*   **Java 17** or higher
+*   **Maven 3.9+**
+*   **Mistral API Key** (Get one at [console.mistral.ai](https://console.mistral.ai/))
+
+## 🔑 Configuration
+Update your `src/main/resources/application.properties`:
+
+```properties
 spring.ai.mistralai.api-key=YOUR_API_KEY
 spring.ai.mistralai.chat.options.model=mistral-medium
 spring.ai.mistralai.chat.options.temperature=0.7
-▶️ Run the Application
-mvn clean install
-mvn spring-boot:run
+```
 
-App runs on:
+## ▶️ Getting Started
+1. **Clone the repository**:
+   ```bash
+   git clone <repo-url>
+   cd context-aware-ai-demo
+   ```
+2. **Build and Run**:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```
+   The application will be available at: `http://localhost:8080`
 
-http://localhost:8080
-🧪 API Usage
-➤ Endpoint
-POST /chat
-➤ Request
+---
+
+## 🧪 API Usage
+
+### 1. Initialize Context
+**Endpoint:** `POST /chat`  
+**Payload:**
+```json
 {
-"sessionId": "user123",
-"input": "My name is Saurabh"
+  "sessionId": "session_001",
+  "input": "My name is Saurabh."
 }
-➤ Follow-up
+```
+
+### 2. Follow-up (Contextual)
+**Endpoint:** `POST /chat`  
+**Payload:**
+```json
 {
-"sessionId": "user123",
-"input": "What is my name?"
+  "sessionId": "session_001",
+  "input": "What is my name?"
 }
-🎯 Response
-Your name is Saurabh
+```
+**Expected Response:**
+> "Your name is Saurabh."
 
-👉 Same sessionId → same memory
+---
 
-🧠 How Context Works
-Each sessionId maps to a message list
-Stored in memory (Map)
-Full history is sent to model every request
+## 🧠 How Context Works
+1.  **Storage**: Each `sessionId` is mapped to a `List<ChatMessage>` in an in-memory `Map`.
+2.  **State**: When a new request arrives, the `ChatHistoryService` retrieves all previous messages for that ID.
+3.  **Prompting**: The entire history is sent to the Mistral model, allowing it to "remember" the conversation flow.
+```
